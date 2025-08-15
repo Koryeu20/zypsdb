@@ -1,0 +1,32 @@
+{
+    "name": "growtopialogin-backend",
+    "version": "0.0.1",
+    "description": "An growtopia webserver for login system",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/YoruAkio/GrowtopiaLogin-Backend.git"
+    },
+    "author": "YoruAkio <yoruakio@proton.me>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/YoruAkio/GrowtopiaLogin-Backend/issues"
+    },
+    "homepage": "https://github.com/YoruAkio/GrowtopiaLogin-Backend#readme",
+    "dependencies": {
+        "axios": "^1.7.9",
+        "body-parser": "^1.20.2",
+        "compression": "^1.7.5",
+        "cookie-parser": "^1.4.7",
+        "ejs": "^3.1.10",
+        "express": "^4.21.2",
+        "express-rate-limit": "^7.4.0",
+        "node-fetch": "^3.3.2",
+        "nodemon": "^3.1.7"
+    }
+}
