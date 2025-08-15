@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Growtopia - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: transparent !important;
+            /* Tambahkan !important */
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: none !important;
+            /* Hilangkan background gradasi yang semitransparan */
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .login-container {
+            background: linear-gradient(135deg, #ff00c8, #00ffd0, #5f00ff);
+            padding: 3px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px #00f5ff80, 0 0 40px #ff00c8a0;
+        }
+
+        .login-content {
+            background: #0e011a;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: inset 0 0 8px #00fff73b;
+        }
+
+        .animated-border {
+            position: relative;
+            border-radius: 12px;
+            padding: 3px;
+            z-index: 1;
+        }
+
+        .animated-border::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            padding: 2px;
+            background: linear-gradient(270deg, #ff00c8, #00ffd0, #5f00ff, #00bcfb);
+            background-size: 600% 600%;
+            animation: borderAnim 6s linear infinite;
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+        }
+
+        @keyframes borderAnim {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .animated-text span {
+            display: inline-block;
+            margin: 0 0.05rem;
+            color: white;
+            transition: color 0.2s;
+            text-shadow: 0 0 5px #0ff, 0 0 10px #f0f, 0 0 15px #0ff;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        .input-field {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ffe5;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px #00ffee20;
+        }
+
+        .input-field input {
+            font-weight: 400;
+        }
+
+        .input-field label {
+            font-weight: 500;
+        }
+
+        .input-field:focus-within {
+            border-color: #00f6ff;
+            box-shadow: 0 0 12px #00f6ff80;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border: 1px solid #00ffe5;
+            /* Tambahkan ini */
+            box-shadow: 0 0 8px #00ffee20;
+            /* Sama seperti input-field */
+            background: linear-gradient(45deg, #000000, #000000);
+            color: rgb(0, 195, 255);
+            letter-spacing: 0.05em;
+        }
+
+        .action-button:focus,
+        .action-button:hover {
+            border-color: #00f6ff;
+            transform: scale(1.05);
+        }
+
+
+        #loginButton {
+            background: linear-gradient(45deg, #00ff00, #06be00);
+            color: rgb(255, 255, 255);
+
+        }
+
+        #loginButton:hover {
+            transform: scale(1.05);
+        }
+
+        #createGrowIdButton {
+            background: linear-gradient(45deg, #3700ff, #0004ff);
+            color: rgb(255, 255, 255);
+        }
+
+        #createGrowIdButton:hover {
+            transform: scale(1.05);
+        }
+
+        @media screen and (orientation: landscape) {
+            .login-container {
+                width: 80vw;
+                max-width: 700px;
+                margin: 1rem auto;
+            }
+
+            .login-content {
+                padding: 1.25rem 2rem;
+            }
+
+            .action-button {
+                font-size: 13px;
+                padding: 0.65rem;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen">
+    <div class="login-container animated-border">
+        <div class="login-content">
+            <!-- Title dengan animasi -->
+            <div class="text-center mb-4">
+                <h1 id="animatedText" class="text-lg font-bold animated-text"></h1>
+            </div>
+
+            <div id="errorDiv"
+                class="hidden text-xs text-red-500 font-bold px-3 py-2 bg-red-900/30 rounded mb-3 text-center">
+                <span id="errorMessage"></span>
+            </div>
+
+            <div id="successDiv"
+                class="hidden text-xs text-green-500 font-bold px-3 py-2 bg-green-900/30 rounded mb-3 text-center">
+                <span id="successMessage"></span>
+            </div>
+
+            <form method="post" action="/player/growid/login/validate" accept-charset="UTF-8" id="loginForm"
+                class="space-y-4">
+                <input type="hidden" name="type" value="log" />
+                <input type="hidden" name="_token" value="<%= JSON.stringify(data) %>" />
+
+                <div>
+                    <label for="loginGrowId" class="block text-white text-xs mb-1 font-medium">GrowID</label>
+                    <div class="input-field flex items-center rounded-lg px-2 py-2">
+                        <i class="fas fa-user text-white mr-2"></i>
+                        <input type="text" name="growId" id="loginGrowId"
+                            class="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                            placeholder="Enter GrowID" />
+                    </div>
+                </div>
+
+                <div>
+                    <label for="loginPassword" class="block text-white text-xs mb-1 font-medium">Password</label>
+                    <div class="input-field flex items-center rounded-lg px-2 py-2">
+                        <i class="fas fa-lock text-white mr-2"></i>
+                        <input type="password" name="password" id="loginPassword"
+                            class="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                            placeholder="Enter Password" />
+                        <button type="button" id="toggleLogPassword" class="text-white ml-2 focus:outline-none">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center space-y-3 mt-4">
+                    <button id="loginButton" class="action-button">Login</button>
+                    <button id="createGrowIdButton" class="action-button">Create GrowID</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize animated text
+            const textElement = document.getElementById('animatedText');
+            const textContent = 'LOGIN DASHBOARD';
+            
+            if (textElement) {
+                textElement.innerHTML = ''; // Clear existing content
+                textContent.split('').forEach((char) => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char; // Use non-breaking space
+                    textElement.appendChild(span);
+                });
+
+                const spans = textElement.querySelectorAll('span');
+                let index = 0;
+                setInterval(() => {
+                    spans.forEach((span, i) => {
+                        span.style.color = i === index ? 
+                            `rgb(${128 + Math.random() * 127}, ${128 + Math.random() * 127}, ${128 + Math.random() * 127})` : 
+                            'white';
+                    });
+                    index = (index + 1) % spans.length;
+                }, 200);
+            }
+
+            // Get form elements
+            const loginGrowId = document.getElementById('loginGrowId');
+            const loginPassword = document.getElementById('loginPassword');
+            const loginForm = document.getElementById('loginForm');
+            const errorDiv = document.getElementById('errorDiv');
+            const errorMessage = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successDiv');
+            const successMessage = document.getElementById('successMessage');
+
+            // Load stored credentials
+            try {
+                const storedGrowId = localStorage.getItem('growId');
+                const storedPassword = localStorage.getItem('password');
+                
+                if (storedGrowId && loginGrowId) {
+                    loginGrowId.value = storedGrowId;
+                }
+                if (storedPassword && loginPassword) {
+                    loginPassword.value = storedPassword;
+                }
+            } catch (e) {
+                console.warn('Error loading stored credentials:', e);
+            }
+
+            // Utility functions
+            function hideMessages() {
+                if (errorDiv) errorDiv.classList.add('hidden');
+                if (successDiv) successDiv.classList.add('hidden');
+            }
+
+            function showError(message) {
+                hideMessages();
+                if (errorDiv && errorMessage) {
+                    errorDiv.classList.remove('hidden');
+                    errorMessage.textContent = message;
+                }
+            }
+
+            function showSuccess(message) {
+                hideMessages();
+                if (successDiv && successMessage) {
+                    successDiv.classList.remove('hidden');
+                    successMessage.textContent = message;
+                }
+            }
+
+            function validateInputs(uName, uPass) {
+                if (!uName || !uPass) {
+                    showError('GrowID dan Password tidak boleh kosong');
+                    return false;
+                }
+                if (uName.length < 3) {
+                    showError('GrowID minimal 3 karakter');
+                    return false;
+                }
+                if (uPass.length < 4) {
+                    showError('Password minimal 4 karakter');
+                    return false;
+                }
+                if (!/^[a-zA-Z0-9_]+$/.test(uName)) {
+                    showError('GrowID hanya boleh mengandung huruf, angka, dan underscore');
+                    return false;
+                }
+                return true;
+            }
+
+            function saveCredentials(uName, uPass) {
+                try {
+                    localStorage.setItem('growId', uName);
+                    localStorage.setItem('password', uPass);
+                    localStorage.setItem('lastLogin', new Date().toISOString());
+                } catch (e) {
+                    console.warn('Error saving credentials:', e);
+                }
+            }
+
+            function submitForm(type) {
+                const typeInput = document.querySelector('input[name="type"]');
+                if (typeInput) {
+                    typeInput.value = type;
+                }
+                
+                if (loginForm) {
+                    loginForm.submit();
+                }
+            }
+
+            // Login button event
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    hideMessages();
+                    
+                    if (!loginGrowId || !loginPassword) {
+                        showError('Form elements not found');
+                        return;
+                    }
+
+                    const uName = loginGrowId.value.trim();
+                    const uPass = loginPassword.value.trim();
+
+                    if (!validateInputs(uName, uPass)) {
+                        return;
+                    }
+
+                    saveCredentials(uName, uPass);
+                    submitForm('login');
+                });
+            }
+
+            // Create GrowID button event
+            const createGrowIdButton = document.getElementById('createGrowIdButton');
+            if (createGrowIdButton) {
+                createGrowIdButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    hideMessages();
+                    
+                    if (!loginGrowId || !loginPassword) {
+                        showError('Form elements not found');
+                        return;
+                    }
+
+                    const uName = loginGrowId.value.trim();
+                    const uPass = loginPassword.value.trim();
+
+                    if (!validateInputs(uName, uPass)) {
+                        return;
+                    }
+
+                    // Additional validation for account creation
+                    if (uPass.length < 6) {
+                        showError('Password untuk akun baru minimal 6 karakter');
+                        return;
+                    }
+
+                    saveCredentials(uName, uPass);
+                    submitForm('create');
+                });
+            }
+
+            // Toggle password visibility
+            const toggleLogPassword = document.getElementById('toggleLogPassword');
+            if (toggleLogPassword && loginPassword) {
+                toggleLogPassword.addEventListener('click', function () {
+                    const icon = this.querySelector('i');
+                    if (loginPassword.type === 'password') {
+                        loginPassword.type = 'text';
+                        if (icon) icon.className = 'fas fa-eye-slash';
+                    } else {
+                        loginPassword.type = 'password';
+                        if (icon) icon.className = 'fas fa-eye';
+                    }
+                });
+            }
+
+            // Handle form submission errors (if any)
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+            
+            if (error) {
+                switch (error) {
+                    case 'invalid_credentials':
+                        showError('GrowID atau Password salah');
+                        break;
+                    case 'account_exists':
+                        showError('Akun sudah ada, silakan login');
+                        break;
+                    case 'server_error':
+                        showError('Terjadi kesalahan server, coba lagi nanti');
+                        break;
+                    default:
+                        showError('Terjadi kesalahan: ' + error);
+                }
+            }
+            
+            if (success) {
+                switch (success) {
+                    case 'account_created':
+                        showSuccess('Akun berhasil dibuat! Silakan login');
+                        break;
+                    case 'login_success':
+                        showSuccess('Login berhasil!');
+                        break;
+                    default:
+                        showSuccess(success);
+                }
+            }
+
+            // Auto-hide messages after 5 seconds
+            setTimeout(() => {
+                hideMessages();
+            }, 5000);
+
+            // Enhanced session management
+            function checkSession() {
+                const lastLogin = localStorage.getItem('lastLogin');
+                if (lastLogin) {
+                    const lastLoginDate = new Date(lastLogin);
+                    const now = new Date();
+                    const hoursDiff = (now - lastLoginDate) / (1000 * 60 * 60);
+                    
+                    // Clear session if older than 24 hours
+                    if (hoursDiff > 24) {
+                        localStorage.removeItem('growId');
+                        localStorage.removeItem('password');
+                        localStorage.removeItem('lastLogin');
+                    }
+                }
+            }
+
+            checkSession();
+
+            // Add input event listeners for real-time validation
+            if (loginGrowId) {
+                loginGrowId.addEventListener('input', function() {
+                    const value = this.value.trim();
+                    if (value && !/^[a-zA-Z0-9_]*$/.test(value)) {
+                        showError('GrowID hanya boleh mengandung huruf, angka, dan underscore');
+                    } else {
+                        hideMessages();
+                    }
+                });
+            }
+
+            if (loginPassword) {
+                loginPassword.addEventListener('input', function() {
+                    hideMessages();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

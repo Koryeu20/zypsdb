@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growtopia - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* [Previous styles remain the same until media queries] */
+        body {
+            background: transparent !important;
+            font-size: 14px;
+        }
+
+        .login-container {
+            position: relative;
+            background: black;
+            padding: 3px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(#ff0000, #ff00ff, #00ffff, #00ff00, #ffff00, #ff0000);
+            animation: rgb-rotate 3s linear infinite;
+        }
+
+        .login-content {
+            position: relative;
+            background: black;
+            border-radius: 10px;
+            padding: 0.3rem;
+            z-index: 1;
+        }
+
+        @keyframes rgb-rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animated-text span {
+            display: inline-block;
+            margin: 0 0.05rem;
+            transition: color 0.2s;
+        }
+
+        .input-field {
+            background-color: rgba(43, 77, 109, 0.3);
+            border: 1px solid rgba(129, 212, 250, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus-within {
+            border-color: #00b8ff;
+            box-shadow: 0 0 8px rgba(0, 184, 255, 0.3);
+        }
+
+        .login-button {
+            background: linear-gradient(45deg, #00b8ff, #0056e0);
+            transition: all 0.3s ease;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-button:hover {
+            background: linear-gradient(45deg, #0056e0, #00b8ff);
+            transform: scale(1.03);
+        }
+
+        /* Mobile adjustments - unchanged */
+        @media (max-width: 640px) {
+            .login-container {
+                width: 85%;
+                margin: 0.4rem auto;
+                transform: scale(0.8);
+            }
+
+            .login-content {
+                padding: 0.5rem;
+            }
+
+            .animated-text {
+                font-size: 1rem;
+            }
+
+            .login-content h1 {
+                font-size: 1rem;
+                margin-bottom: 0.4rem;
+            }
+
+            .input-field {
+                padding: 0.4rem;
+            }
+
+            .input-field input {
+                font-size: 0.75rem;
+            }
+
+            .login-button {
+                height: 32px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Tablet screens */
+        @media (min-width: 641px) and (max-width: 1023px) {
+            .login-container {
+                width: 60%;
+                /* Reduced from 70% */
+                max-width: 500px;
+                transform: scale(0.9);
+            }
+
+            .login-content {
+                padding: 1rem;
+            }
+
+            .animated-text {
+                font-size: 1.25rem;
+            }
+
+            .input-field {
+                padding: 0.6rem;
+            }
+
+            .login-button {
+                height: 36px;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Desktop screens - adjusted width */
+        @media (min-width: 1024px) {
+            .login-container {
+                width: 40%;
+                /* Reduced from 65% */
+                max-width: 450px;
+                /* Added max-width */
+                transform: scale(1.1);
+                margin: 2rem auto;
+            }
+
+            .login-content {
+                padding: 1.25rem;
+            }
+
+            .animated-text {
+                font-size: 1.5rem;
+            }
+
+            .input-field {
+                padding: 0.75rem;
+            }
+
+            .input-field input {
+                font-size: 0.875rem;
+            }
+
+            .login-button {
+                height: 40px;
+                font-size: 0.875rem;
+            }
+
+            .fas {
+                font-size: 1rem;
+            }
+        }
+
+        /* Shared button styles */
+        #loginButton,
+        #createGrowIdButton {
+            width: 100%;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            letter-spacing: 0.025em;
+        }
+
+        #createGrowIdButton {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+        }
+
+        #createGrowIdButton:hover {
+            background: linear-gradient(45deg, #16a34a, #22c55e);
+        }
+    </style>
+</head>
+
+<!-- [Rest of the HTML remains exactly the same] -->
+
+<body class="flex flex-col items-center justify-center min-h-screen py-2">
+    <!-- [Previous body content remains unchanged] -->
+    <div class="fixed inset-0 flex items-center justify-center">
+        <div class="login-container">
+            <div class="login-content">
+                <h1 id="animatedText" class="animated-text text-center font-bold mb-2"></h1>
+                <div id="errorDiv"
+                    class="hidden flex flex-col mt-2 text-xs text-red-500 font-bold px-2 py-1 bg-red-900/30 rounded">
+                    <span id="errorMessage"></span>
+                </div>
+
+                <form method="post" action="/player/growid/login/validate" accept-charset="UTF-8" id="loginForm"
+                    class="mt-2 space-y-2">
+
+                    <div class="mb-2">
+                        <input name="type" value="log" type="hidden" />
+                        <input name="_token" value="<%= JSON.stringify(data) %>" type="hidden" />
+                        <label for="loginGrowId" class="block text-white text-xs mb-1">GrowID</label>
+                        <div class="input-field flex items-center rounded-lg px-2 py-1.5">
+                            <i class="fas fa-user text-white mr-2"></i>
+                            <input type="text" name="growId" id="loginGrowId"
+                                class="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                                placeholder="Enter your growid">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="loginPassword" class="block text-white text-xs mb-1">Password</label>
+                        <div class="input-field flex items-center rounded-lg px-2 py-1.5">
+                            <i class="fas fa-lock text-white mr-2"></i>
+                            <input type="password" name="password" id="loginPassword"
+                                class="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                                placeholder="Enter your password">
+                            <button type="button" id="toggleLogPassword" class="text-white ml-2 focus:outline-none">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="serverSelect" class="block text-white text-xs mb-1">Choose Server</label>
+                        <div class="relative">
+                            <select id="serverSelect" name="server"
+                                class="w-full input-field bg-black text-white rounded-lg px-2 py-1.5 focus:outline-none">
+                                <option value="" disabled selected>Select a server</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="serverPort" id="serverPort">
+                    <div class="flex flex-col items-center mt-3 space-y-2">
+                        <button id="loginButton" class="login-button">
+                            Login
+                        </button>
+                        <button id="createGrowIdButton" class="login-button">
+                            Create GrowID
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const serverSelect = document.getElementById("serverSelect");
+            const serverPortInput = document.getElementById("serverPort");
+            let userSelectedValue = ""; 
+            let lastNotebookContent = ""; 
+            function updateServerList() {
+                const cacheBuster = new Date().getTime();
+                const url = `https://api.allorigins.win/get?url=${encodeURIComponent("https://onlinenotebook.net/4RrLxrVRILUoiku")}&cacheBuster=${cacheBuster}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(data.contents, "text/html");
+                        let textareaValue = doc.querySelector("#body")?.value || "";
+                        if (textareaValue !== lastNotebookContent) {
+                            console.log("Notebook content changed. Updating server list...");
+                            lastNotebookContent = textareaValue;
+                            const lines = textareaValue.split("\n");
+                            const currentSelection = userSelectedValue || serverSelect.value;
+                            serverSelect.innerHTML = "";
+                            const defaultOption = document.createElement("option");
+                            defaultOption.value = "";
+                            defaultOption.textContent = "-- Choose Server --";
+                            defaultOption.disabled = userSelectedValue !== "";
+                            serverSelect.appendChild(defaultOption);
+                            let serverAdded = 0;
+                            lines.forEach(line => {
+                                if (line.trim()) {
+                                    const parts = line.split(" - ");
+                                    if (parts.length >= 2) {
+                                        const name = parts[0].trim();
+                                        const port = parts[parts.length - 1].trim();
+
+                                        if (name && port) {
+                                            const option = document.createElement("option");
+                                            option.value = port;
+                                            option.textContent = name;
+                                            serverSelect.appendChild(option);
+                                            serverAdded++;
+                                        }
+                                    }
+                                }
+                            });
+                            if (currentSelection && [...serverSelect.options].some(opt => opt.value === currentSelection)) {
+                                serverSelect.value = currentSelection;
+                                serverPortInput.value = currentSelection;
+                            } else if (!userSelectedValue) {
+                                serverSelect.value = "";
+                                serverPortInput.value = "";
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching notebook:", error);
+                    });
+            }
+            updateServerList();
+            setInterval(updateServerList, 2000);
+            serverSelect.addEventListener("change", function () {
+                if (this.value !== "") {
+                    userSelectedValue = this.value; 
+                    serverPortInput.value = this.value;
+                    console.log("User selected server:", this.value);
+                }
+            });
+
+            const debugButton = document.createElement("button");
+            debugButton.textContent = "Force Update";
+            debugButton.style.marginLeft = "10px";
+            debugButton.addEventListener("click", function () {
+                console.log("Forcing update...");
+                lastNotebookContent = "";
+                updateServerList();
+            });
+            serverSelect.parentNode.insertBefore(debugButton, serverSelect.nextSibling);
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const textElement = document.getElementById('animatedText');
+            const textContent = 'BLADEPS';
+
+            textContent.split('').forEach((char) => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                textElement.appendChild(span);
+            });
+
+            function getRandomBrightColor() {
+                const r = Math.floor(Math.random() * 128 + 128);
+                const g = Math.floor(Math.random() * 128 + 128);
+                const b = Math.floor(Math.random() * 128 + 128);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            let index = 0;
+            const spans = textElement.querySelectorAll('span');
+            setInterval(() => {
+                spans.forEach((span, i) => {
+                    span.style.color = i === index ? getRandomBrightColor() : 'white';
+                });
+                index = (index + 1) % spans.length;
+            }, 200);
+            const storedGrowId = localStorage.getItem('growId');
+            const storedPassword = localStorage.getItem('password');
+
+            if (storedGrowId) {
+                document.getElementById('loginGrowId').value = storedGrowId;
+            }
+
+            if (storedPassword) {
+                document.getElementById('loginPassword').value = storedPassword;
+            }
+        });
+        document.getElementById('loginButton').addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const loginForm = document.getElementById('loginForm');
+            const uName = document.getElementById('loginGrowId').value;
+            const uPass = document.getElementById('loginPassword').value;
+            const serverSelect = document.getElementById("serverSelect");
+            const serverPortInput = document.getElementById("serverPort");
+
+            if (!serverSelect.value) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Please Select One Server First';
+                return;
+            }
+
+            if (!uName || !uPass) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Username or Password is empty';
+                return;
+            } else if (uName.length < 3 || uPass.length < 4) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Username or Password must be at least 4 characters long';
+                return;
+            } else {
+                document.querySelector('input[name="type"]').value = 'login';
+                localStorage.setItem('growId', uName);
+                localStorage.setItem('password', uPass);
+                localStorage.setItem('type', 'login');
+                localStorage.setItem('port', serverPortInput.value);
+                loginForm.submit();
+            }
+        });
+
+        document.getElementById('createGrowIdButton').addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const loginForm = document.getElementById('loginForm');
+            const uName = document.getElementById('loginGrowId').value;
+            const uPass = document.getElementById('loginPassword').value;
+            const serverSelect = document.getElementById("serverSelect");
+            const serverPortInput = document.getElementById("serverPort");
+
+            if (!serverSelect.value) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Please Select One Server First';
+                return;
+            }
+
+            if (!uName || !uPass) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Username or Password is empty';
+                return;
+            } else if (uName.length < 3 || uPass.length < 4) {
+                document.getElementById('errorDiv').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Username or Password must be at least 4 characters long';
+                return;
+            } else {
+                document.querySelector('input[name="type"]').value = 'create';
+                localStorage.setItem('growId', uName);
+                localStorage.setItem('password', uPass);
+                localStorage.setItem('type', 'create');
+                localStorage.setItem('port', serverPortInput.value);
+                loginForm.submit();
+            }
+        });
+
+        document.getElementById('toggleLogPassword').addEventListener('click', function () {
+            const passwordField = document.getElementById('loginPassword');
+            const passwordFieldType = passwordField.getAttribute('type');
+            if (passwordFieldType === 'password') {
+                passwordField.setAttribute('type', 'text');
+                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                passwordField.setAttribute('type', 'password');
+                this.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        });
+    </script>
+</body>
+
+</html>
