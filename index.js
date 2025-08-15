@@ -3,103 +3,79 @@ const app = express();
 const bodyParser = require('body-parser');
 const rateLimiter = require('express-rate-limit');
 const compression = require('compression');
-const chalk = require('chalk');
-const fs = require("fs");
-const path = require("path");
-const DATA_FILE = path.join(__dirname, "data.txt");
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+const DATA_FILE = path.join(__dirname, 'data.txt');
+
+// Ensure data file exists
+if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, '');
+    console.log('Created empty data.txt file');
+}
+
+// Set up views folder for EJS
+app.set('views', path.join(__dirname, 'public/html'));
+app.set('view engine', 'ejs');
+app.set('trust proxy', 1);
+
+// Middleware
 app.use(compression({
     level: 5,
     threshold: 0,
     filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-            return false;
-        }
+        if (req.headers['x-no-compression']) return false;
         return compression.filter(req, res);
     }
 }));
 
-app.set('view engine', 'ejs');
-app.set('trust proxy', 1);
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept',
-    );
-    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url} - ${res.statusCode}`);
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url}`);
     next();
 });
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 1000, headers: true }));
 
-
-app.get("/api/servers", (req, res) => {
-    fs.readFile(DATA_FILE, "utf8", (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: "Error reading data file" });
-        }
-
+// Routes
+app.get('/api/servers', (req, res, next) => {
+    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
+        if (err) return next(err);
         const servers = data
-            .split("\n")
+            .split('\n')
             .map(line => line.trim())
-            .filter(line => line.includes(" - "))
+            .filter(line => line.includes(' - '))
             .map(line => {
-                const parts = line.split(" - ");
-                if (parts.length < 2) return null;
-                return {
-                    name: parts[0].trim(),
-                    port: parts[1]?.trim() || ""
-                };
-            })
-            .filter(item => item !== null);
-
+                const parts = line.split(' - ');
+                return { name: parts[0].trim(), port: parts[1]?.trim() || '' };
+            });
         res.json(servers);
     });
 });
 
-
-
-
-// Halaman edit server
-app.get("/editserver", (req, res) => {
-    fs.readFile(DATA_FILE, "utf8", (err, data) => {
-        if (err) {
-            return res.status(500).send("Error reading data file");
-        }
+// Edit server page
+app.get('/editserver', (req, res, next) => {
+    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
+        if (err) return next(err);
         res.send(`
             <!DOCTYPE html>
-            <html lang="en">
+            <html>
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Edit Server List</title>
                 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                <style>
-                    /* Custom styles for the textarea */
-                    textarea {
-                        font-family: monospace;
-                        background-color: #1e1e1e;
-                        color: #d4d4d4;
-                        border: 1px solid #333;
-                        border-radius: 4px;
-                        padding: 10px;
-                        resize: vertical;
-                    }
-                    textarea:focus {
-                        outline: none;
-                        border-color: #4f46e5;
-                        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-                    }
-                </style>
             </head>
             <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-2xl">
                     <h1 class="text-2xl font-bold mb-4">Edit Server List</h1>
                     <form action="/editserver" method="post">
-                        <textarea name="serverData" rows="20" class="w-full">${data}</textarea>
+                        <textarea name="serverData" rows="20" class="w-full bg-black text-white p-2">${data}</textarea>
                         <div class="mt-4">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
                                 Save Changes
                             </button>
                         </div>
@@ -110,183 +86,95 @@ app.get("/editserver", (req, res) => {
         `);
     });
 });
-app.post("/editserver", (req, res) => {
-    fs.writeFile(DATA_FILE, req.body.serverData, "utf8", err => {
-        if (err) {
-            return res.status(500).send("Error saving data file");
-        }
-        res.redirect("/editserver");
+
+app.post('/editserver', (req, res, next) => {
+    fs.writeFile(DATA_FILE, req.body.serverData || '', 'utf8', err => {
+        if (err) return next(err);
+        res.redirect('/editserver');
     });
 });
-app.all('/player/login/dashboard', function (req, res) {
-    console.log("dashboard body:", req.body);
+
+// Dashboard login
+app.all('/player/login/dashboard', (req, res, next) => {
+    console.log('dashboard body:', req.body);
     const tData = {};
+
     try {
-        const uData = JSON.stringify(req.body).split('"')[1].split('\\n');
-        const uName = uData[0].split('|');
-        const uPass = uData[1].split('|');
-        
-        for (let i = 0; i < uData.length - 1; i++) {
+        const bodyStr = JSON.stringify(req.body);
+        if (!bodyStr.includes('"')) throw new Error('Unexpected body format');
+        const uData = bodyStr.split('"')[1]?.split('\\n') || [];
+
+        for (let i = 0; i < uData.length; i++) {
             const d = uData[i].split('|');
-            tData[d[0]] = d[1];
+            if (d.length >= 2) tData[d[0]] = d[1];
         }
-        // if (uName[1] && uPass[1]) { 
-        //     res.redirect('/player/growid/login/validate'); 
-        // }
-    } catch (why) {
-        console.log(`Warning: ${why}`); 
+    } catch (err) {
+        console.warn('Parsing error:', err.message);
     }
-   // console.log("Rendered Data:", tData);  
-    res.render(__dirname + '/public/html/dashboard.ejs', { data: tData });
+
+    res.render('dashboard', { data: tData });
 });
 
+// Blocked page
+app.all('/player/growid/login/blocked', (req, res) => {
+    res.send('<h1 style="color:red">LOGIN BLOCKED</h1><p>We detected unusual activity.</p>');
+});
 
+// Token check
+app.all('/player/growid/checktoken', (req, res) => {
+    res.send({
+        status: 'success',
+        message: 'Account Validated.',
+        token: req.body.refreshToken,
+        url: '',
+        accountType: 'growtopia'
+    });
+});
 
-const axios = require('axios');
-
-async function trackIP() {
-  try {
-    const response = await axios.get('https://freegeoip.app/json/');
-    const data = response.data;
-
-    if (!data.ip) {
-      console.log('Tidak dapat melacak IP.');
-      return null;
-    }
-
-    return {
-      ip: data.ip,
-      kota: data.city,
-      daerah: data.region_name,
-      kodePos: data.zip_code,
-      negara: data.country_name,
+// GrowID validate
+app.all('/player/growid/login/validate', (req, res) => {
+    const tokenData = {
+        tankIDName: req.body.growId,
+        tankIDPass: req.body.password,
+        type: req.body.type,
+        port: req.body.port
     };
-  } catch (error) {
-    console.error('Error:', error);
-    return null;
-  }
+    const token = Buffer.from(`_token=${JSON.stringify(tokenData)}`).toString('base64');
+    console.log(`GROWID: ${tokenData.tankIDName} >> PASSWORD: ${tokenData.tankIDPass} >> MODE: ${tokenData.type} >> PORT: ${tokenData.port}`);
+
+    res.send({
+        status: 'success',
+        message: 'Account Validated.',
+        token,
+        url: '',
+        accountType: 'growtopia'
+    });
+});
+
+// IP tracking (optional use)
+async function trackIP() {
+    try {
+        const { data } = await axios.get('https://freegeoip.app/json/');
+        return data.ip ? {
+            ip: data.ip,
+            city: data.city,
+            region: data.region_name,
+            zip: data.zip_code,
+            country: data.country_name
+        } : null;
+    } catch {
+        return null;
+    }
 }
 
-
-
-  
-
-app.all('/player/growid/login/blocked', (req, res) => {
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Growtopia - Dashboard</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-        <style>
-            body {
-                background: transparent !important;
-            }
-
-            .login-container {
-                position: relative;
-                background: black;
-                padding: 4px;
-                border-radius: 16px;
-                overflow: hidden;
-            }
-
-            .login-container::before {
-                content: "";
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: conic-gradient(#ff0000, #ff00ff, #00ffff, #00ff00, #ffff00, #ff0000);
-                animation: rgb-rotate 3s linear infinite;
-            }
-
-            .login-content {
-                position: relative;
-                background: black;
-                border-radius: 12px;
-                padding: 2rem;
-                z-index: 1;
-                text-align: center;
-            }
-
-            @keyframes rgb-rotate {
-                from {
-                    transform: rotate(0deg);
-                }
-
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            .login-button {
-                background: linear-gradient(45deg, #00b8ff, #0056e0);
-                transition: all 0.3s ease;
-            }
-
-            .login-button:hover {
-                background: linear-gradient(45deg, #0056e0, #00b8ff);
-                transform: scale(1.05);
-            }
-        </style>
-    </head>
-
-    <body class="flex flex-col items-center justify-center min-h-screen">
-        <div class="fixed inset-0 flex items-center justify-center">
-            <div class="login-container w-[30rem]">
-                <div class="login-content py-6 px-8">
-                    <h1 class="text-center font-bold text-3xl mb-4 text-white">LOGIN BLOCKED</h1>
-                    <p class="text-white text-lg mb-6">Kami Mendeteksi Sesuatu Yang Tidak Wajar Ketika Anda Login</p>
-
-                    <div class="flex justify-center mt-4">
-                        <a href="/player/login/dashboard" class="login-button w-full px-6 py-3 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                            Login Ulang
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
-
-    </html>
-    `;
-
-    res.send(htmlContent);
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err.stack);
+    res.status(500).send('Internal Server Error: ' + err.message);
 });
 
-app.all('/player/growid/checktoken', (req, res) => {
-    const refreshToken = req.body.refreshToken;
-    res.send(
-        `{"status":"success","message":"Account Validated.","token":"${refreshToken}","url":"","accountType":"growtopia"}`,
-    );
+// Start server
+const PORT = 5000;
+app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
 });
-app.all('/player/growid/login/validate', async (req, res) => {
-    const rawToken = req.body._token;
-    const tokenData = JSON.parse(rawToken);
-    tokenData.tankIDName = req.body.growId;
-    tokenData.tankIDPass = req.body.password;
-    tokenData.type = req.body.type;  
-    tokenData.port = req.body.port;
-    const token = Buffer.from(
-        `_token=${JSON.stringify(tokenData)}`
-    ).toString('base64');
-
-    console.log(`GROWID: ${tokenData.tankIDName} >> PASSWORD: ${tokenData.tankIDPass} >> MODE: ${req.body.type} >> PORT: ${req.body.port}`);
-    
-    res.send(
-        `{"status":"success","message":"Account Validated.","token":"${token}","url":"","accountType":"growtopia"}`,
-    );
-});
-    
-
-
-app.listen(80, function () {
-    console.log('Listening on port 5000');
-});
-
